@@ -2,37 +2,55 @@ import React, { Component } from "react";
 import Waveform from "./Waveform";
 import TalkerForm from "./TalkerForm";
 import TalkerItem from "./TalkerItem";
+import Save from "./Save";
 
 class Main extends Component {
-  state = {
-    maxNo: 1,
-    boards: [
-      {
-        brdno: 0,
-        talker: "코스모스",
-        text: "코스모스는 가을에 피어요.",
-        // analysisType: "morpAPI",
-        // analysisResult: "",
-      },
-    ],
-    selectedBoard: {},
-    start: null, // mp3/selected region start time
-    end: null, // mp3/selected region end time
-    wavesurfer: null,
-    audioPlaying: false,
-  };
+  constructor(props){
+    super(props);
+    this.state = {
+      maxNo: 1,
+      boards: [
+        {
+          brdno: 0,
+          talker: "코스모스",
+          text: "코스모스는 가을에 피어요.",
+          // analysisType: "morpAPI",
+          // analysisResult: "",
+        },
+      ],
+      selectedBoard: {},
+      start: null, // mp3/selected region start time
+      end: null, // mp3/selected region end time
+      pos: null,  //progress 값
+      wavesurfer: null,
+      audioPlaying: false,
+      result:[],
+    };
+    this.handleAudioPlay = this.handleAudioPlay.bind(this);
+    this.handleSetRegionPoints = this.handleSetRegionPoints.bind(this);
+    this.handleGetData = this.handleGetData.bind(this);
+    this.handleRemove = this.handleRemove.bind(this);
+    this.handleSelectRow = this.handleSelectRow.bind(this);
+    this.handleClearRegionPoints = this.handleClearRegionPoints.bind(this);
+    this.handleResult = this.handleResult.bind(this);
+  }
+  
 
   handleAudioPlay = (bool) => {
     this.setState({ audioPlaying: bool });
   };
 
   // 자식 컴포넌트 waveform에서 받아온 값
-  handleSetRegionPoints = (start = null, end = null, wavesurfer = null) => {
+  handleSetRegionPoints = (start = null, end = null, wavesurfer) => {
     this.setState({ start, end, wavesurfer });
     console.log(`선택 구간 시작 : ${start}s / 선택 구간 끝 : ${end}s`);
   };
 
   handleGetData = (data, brdno) => {
+    //연속해서 배열에 값 넣기
+    this.state.result=this.state.result.concat({
+      brdno: this.state.maxNo,
+      ...data});
     if (!brdno) {
       // Insert
       this.setState({
@@ -42,9 +60,11 @@ class Main extends Component {
           ...data,
           regionStart: this.state.start,
           regionEnd: this.state.end,
+          pos:this.state.wavesurfer.getCurrentTime(),
         }),
         selectedBoard: {},
       });
+      console.log(this.state.result);
     } else {
       // Update
       this.setState({
@@ -81,9 +101,15 @@ class Main extends Component {
     console.log("Clear Region start&end points");
   };
 
-  render() {
-    const { boards, selectedBoard, wavesurfer } = this.state;
+  handleResult=(result)=>{
+    this.setState({
+      result:result
+    });
+  }
 
+  render() {
+    const { boards, selectedBoard, wavesurfer, pos, result } = this.state;
+    
     return (
       <>
         <Waveform
@@ -97,6 +123,7 @@ class Main extends Component {
         <TalkerForm
           onSaveData={this.handleGetData}
           selectedBoard={selectedBoard}
+          pos={pos}
         />
 
         {/* 전사창 */}
@@ -109,9 +136,15 @@ class Main extends Component {
             handleAudioPlay={this.handleAudioPlay}
             audioPlaying={this.state.audioPlaying}
             handleSetRegionPoints={this.handleSetRegionPoints}
-            wavesurfer={wavesurfer}
+            wavesurfer={wavesurfer} 
           />
         ))}
+        {/*저장부분*/} 
+          <Save
+            handleResult={this.handleResult}
+            result={result}
+          />
+        
       </>
     );
   }

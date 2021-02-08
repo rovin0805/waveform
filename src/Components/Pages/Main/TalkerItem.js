@@ -5,12 +5,11 @@ import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 
-class TalkerItem extends Component {
+class TalkerItem extends Component { 
   handleSelectRow = () => {
     const { row, onSelectRow } = this.props;
     onSelectRow(row);
   };
-
   handleRemove = () => {
     const { row, onRemove } = this.props;
     onRemove(row.brdno);
@@ -84,7 +83,6 @@ class TalkerItem extends Component {
           </Grid>
         </Grid>
         {/* 발화내용 end */}
-
         {/* 삭제, 분석상세보기 버튼 start */}
         <Grid
           item
@@ -107,13 +105,16 @@ class TalkerItem extends Component {
                   wavesurfer,
                 } = this.props;
 
-                handleAudioPlay(!audioPlaying);
 
                 // go back to the start point
                 wavesurfer.seekTo(
                   (1 / wavesurfer.getDuration()) * row.regionStart
                 );
-
+                wavesurfer.play();
+                wavesurfer.on("audioprocess",()=>{
+                  wavesurfer.play();
+                  wavesurfer.setPlayEnd(row.regionEnd);
+                });
                 // wavesurfer.play(row.regionStart, row.regionEnd);
               }}
             >
@@ -126,6 +127,9 @@ class TalkerItem extends Component {
         </Grid>
         {/* 삭제, 편집, 분석상세보기 버튼 end */}
       </Grid>
+      
+      
+      
     );
   }
 }
